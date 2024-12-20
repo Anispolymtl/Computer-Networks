@@ -1,0 +1,49 @@
+import java.awt.image.BufferedImage;
+import java.io.*;
+import javax.imageio.ImageIO;
+
+public class ImageHandler {
+
+    private DataInputStream dataIn;
+    private DataOutputStream dataOut;
+
+    // Méthode qui appelle d'autres méthodes pour recevoir l'image à traiter, traiter l'image et la renvoyer
+    // D'ailleurs c'est ici que j'appelle la méthode process de la classe Sobel pour traiter l'image
+    private void getAndSendImageTreated() throws IOException {
+        BufferedImage image = readImage();
+        // Doit avoir une méthode qui permet d'imprimer les infos de l'envoi de l'image au serveur
+        // au serveur (p.3 énoncé) Regarder lien stackOverflow pour obtenir la date actuelle
+        try {
+            sendImage(Sobel.process(image));
+        } catch (IOException e) {
+            System.out.println("Erreur de fichier");
+        }
+    }
+
+    // Méthode qui va permettre de lire l'image/fichier à partir d'un flux d'entrée dataIn
+    private BufferedImage readImage() throws IOException {
+        int size = dataIn.readInt();
+        byte[] imageArray = new byte[size];
+        dataIn.readFully(imageArray);
+        return ImageIO.read(new ByteArrayInputStream(imageArray));
+    }
+
+    // Envoyer l'image via un flux de donnée out "dataOut"
+    private void sendImage(BufferedImage image) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "jpg", byteArrayOutputStream);
+        dataOut.writeInt(byteArrayOutputStream.size());
+        dataOut.write(byteArrayOutputStream.toByteArray());
+        dataOut.flush();
+        byteArrayOutputStream.close();
+    }
+
+    // Setter methods for dataIn and dataOut
+    public void setDataIn(DataInputStream dataIn) {
+        this.dataIn = dataIn;
+    }
+
+    public void setDataOut(DataOutputStream dataOut) {
+        this.dataOut = dataOut;
+    }
+}
